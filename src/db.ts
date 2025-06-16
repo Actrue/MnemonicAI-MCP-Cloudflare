@@ -16,7 +16,8 @@ export const dbFunction = {
     getMemoryCards,
     getAllMemoryCards,
     batchUpdateMemoryCards,
-    deleteMemoryCard
+    deleteMemoryCard,
+    getRandomMemoryCard
 }
 
 async function createMemoryCard(data: {
@@ -58,6 +59,27 @@ async function getAllMemoryCards() {
         return {
             state: false,
             message: "Error fetching all memory cards, Info: " + error,
+            data: null
+        };
+    }
+}
+
+async function getRandomMemoryCard() {
+    try {
+        const randomCard = await db.select()
+            .from(memoryCards)
+            .orderBy(sql`RANDOM()`)
+            .limit(1);
+            
+        return {
+            state: true,
+            message: "Random memory card fetched successfully",
+            data: randomCard[0] || null
+        };
+    } catch (error) {
+        return {
+            state: false,
+            message: "Error fetching random memory card, Info: " + error,
             data: null
         };
     }

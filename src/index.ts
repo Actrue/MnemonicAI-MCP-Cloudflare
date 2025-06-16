@@ -9,6 +9,7 @@ export class MyMCP extends McpAgent {
 		name: "MemoryCard mcp",
 		version: "1.0.0",
 	});
+	
 
 	async init() {
 		
@@ -63,10 +64,35 @@ export class MyMCP extends McpAgent {
 				return { content: [{ type: "text", text: JSON.stringify(result.message) }] };
 			}
 		);
+
+		this.server.tool(
+			"getRandomCard",
+			"这个工具用于随机获取一张记忆卡片",
+			{},
+			async () => {
+				const result = await dbFunction.getRandomMemoryCard();
+				return { content: [{ type: "text", text: JSON.stringify(result.data) }] };
+			}
+		);
 	}
 }
 
-const app = new Hono()
+type HeaderType={
+	key:string
+}
+
+const app = new Hono<{Variables:HeaderType}>()
+
+app.use("*",async(c,next)=>{
+	const key=c.req.header("key")
+	if(!key){
+		return c.json({message:"key is required"},400)
+	}
+	c.set("key",key)
+
+	await next()
+
+})
 
 app.mount('/sse', MyMCP.serveSSE('/sse').fetch, { replaceRequest: false })
 app.mount('/mcp', MyMCP.serve('/mcp').fetch, { replaceRequest: false })
